@@ -1,77 +1,100 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = () => {
+    setIsLoading(true);
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        {/* Hero Card */}
-        <div className="bg-white rounded-xl shadow-xl p-8 md:p-12 text-center">
-          <div className="mb-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Permohonan Cuti / Ijin
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Aplikasi digital untuk mengajukan dan export form permohonan cuti/ijin ke PDF
-            </p>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-16">
+          {/* Top Logos */}
+          <div className="flex justify-between items-start mb-12">
+            {/* Left Logo - GUNUNGMAS */}
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo_GSM-GJo4iDE19wgWfUDLw8pUc4I35Z1kFg.png"
+              alt="GUNUNGMAS Logo"
+              className="w-20 h-20 md:w-24 md:h-24 object-contain"
+            />
+
+            {/* Right Logo - SSS */}
+            <img
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/SSS_LOGO_500px-24JjgKrgOkXTVM7FTWhotP8kkM4UkV.png"
+              alt="SSS Logo"
+              className="w-20 h-20 md:w-24 md:h-24 object-contain"
+            />
           </div>
 
-          {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8 text-left">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-2xl mb-2">📝</div>
-              <h3 className="font-semibold text-gray-900">Form Lengkap</h3>
-              <p className="text-sm text-gray-600 mt-1">Semua data karyawan & jenis cuti</p>
+          {/* Center Section */}
+          <div className="flex flex-col items-center mb-12">
+            {/* Center Badge - HCGA Logo */}
+            <div className="mb-8">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/HCGA_Logo_500px-mU67w8U1AD9e3UzkScPxblS9d8imtZ.png"
+                alt="HCGA Logo"
+                className="w-40 h-40 md:w-48 md:h-48 object-contain drop-shadow-lg"
+              />
             </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <div className="text-2xl mb-2">✍️</div>
-              <h3 className="font-semibold text-gray-900">Tanda Tangan Digital</h3>
-              <p className="text-sm text-gray-600 mt-1">Signature pad untuk approval</p>
+
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-center mb-6">
+              Pengajuan Cuti
+            </h1>
+
+            {/* Divider with dot */}
+            <div className="flex items-center justify-center gap-3 mb-6 w-full">
+              <div className="flex-grow h-0.5 bg-amber-500"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+              <div className="flex-grow h-0.5 bg-amber-500"></div>
             </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-2xl mb-2">📥</div>
-              <h3 className="font-semibold text-gray-900">Export PDF</h3>
-              <p className="text-sm text-gray-600 mt-1">Download instant ke PDF</p>
-            </div>
+
+            {/* Subtitle */}
+            <p className="text-gray-600 text-center text-base md:text-lg max-w-md leading-relaxed">
+              Ajukan permohonan cuti Anda dengan mudah secara digital dan cepat.
+            </p>
           </div>
 
           {/* CTA Button */}
-          <Link
-            href="/leave-form"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors"
-          >
-            Mulai Buat Permohonan
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-
-          {/* Footer Info */}
-          <div className="mt-8 pt-8 border-t border-gray-200 text-sm text-gray-600">
-            <p>Berlaku mulai: 01/11/2024 (Rev. 0)</p>
-            <p className="mt-2">
-              Aplikasi ini membantu Anda mengisi form permohonan cuti/ijin secara digital
-              dan mengexport hasilnya ke file PDF yang siap untuk diserahkan.
-            </p>
+          <div className="flex justify-center mb-12">
+            <Link
+              href="/leave-form"
+              onClick={handleClick}
+              prefetch={true}
+              className={`flex items-center justify-center gap-3 bg-amber-600 text-white font-semibold py-4 px-8 rounded-full transition-all shadow-lg text-base md:text-lg w-full md:w-auto group active:scale-95 ${
+                isLoading
+                  ? 'bg-amber-700 scale-100'
+                  : 'hover:bg-amber-700 hover:shadow-xl active:shadow-md'
+              }`}
+              style={{
+                willChange: 'transform, background-color',
+              }}
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
+              ) : (
+                <FileText className="w-5 h-5 md:w-6 md:h-6" />
+              )}
+              <span>{isLoading ? 'Membuka Formulir...' : 'Klik Mulai buat pengajuan Cuti'}</span>
+              {!isLoading && <span className="group-hover:translate-x-1 transition-transform">→</span>}
+            </Link>
           </div>
-        </div>
 
-        {/* Bottom Info */}
-        <div className="mt-8 text-center text-white text-sm">
-          <p>Digital Leave Form System • Powered by Next.js</p>
+          {/* Bottom Divider */}
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex-grow h-0.5 bg-amber-200"></div>
+            <div className="flex items-center gap-2 text-amber-600 font-semibold text-sm whitespace-nowrap">
+              <span>⚙️</span>
+              <span>HCGA Department</span>
+            </div>
+            <div className="flex-grow h-0.5 bg-amber-200"></div>
+          </div>
         </div>
       </div>
     </main>

@@ -1,10 +1,22 @@
 import { LeaveForm } from '@/components/LeaveForm';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Form Permohonan Cuti/Ijin - Digital Form',
   description: 'Isi form permohonan cuti/ijin dan export ke PDF',
 };
+
+function FormSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+      <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+      <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+      <div className="h-32 bg-gray-200 rounded-lg animate-pulse"></div>
+    </div>
+  );
+}
 
 export default function LeaveFormPage() {
   return (
@@ -23,7 +35,9 @@ export default function LeaveFormPage() {
 
         {/* Form Container */}
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-          <LeaveForm />
+          <Suspense fallback={<FormSkeleton />}>
+            <LeaveForm />
+          </Suspense>
         </div>
 
         {/* Footer */}

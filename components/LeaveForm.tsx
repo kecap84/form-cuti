@@ -3,15 +3,17 @@
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { LeaveFormData } from '@/lib/form-types';
 import { EmployeeInfoSection } from './EmployeeInfoSection';
 import { LeaveTypeSection } from './LeaveTypeSection';
 import { DatePeriodSection } from './DatePeriodSection';
 import { ApprovalSection } from './ApprovalSection';
-import { FormPDFPreview } from './FormPDFPreview';
 import { SignaturePad } from './SignaturePad';
 import { getTodayISO } from '@/lib/date-utils';
+
+// Dynamic import untuk komponen berat (FormPDFPreview menggunakan html2canvas & jsPDF)
+const FormPDFPreview = lazy(() => import('./FormPDFPreview').then(mod => ({ default: mod.FormPDFPreview })));
 
 // Validation schema
 const leaveEntrySchema = z.object({
@@ -135,10 +137,12 @@ export function LeaveForm() {
 
   if (showPreview) {
     return (
-      <FormPDFPreview
-        data={methods.getValues()}
-        onBack={() => setShowPreview(false)}
-      />
+      <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="text-gray-600">Mempersiapkan preview...</div></div>}>
+        <FormPDFPreview
+          data={methods.getValues()}
+          onBack={() => setShowPreview(false)}
+        />
+      </Suspense>
     );
   }
 
