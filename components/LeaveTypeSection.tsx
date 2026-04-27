@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
 import { LeaveFormData, LeaveType, DurationUnit, LEAVE_TYPES, LEAVE_TYPE_MAX_DAYS } from '@/lib/form-types';
 
@@ -24,9 +25,11 @@ export function LeaveTypeSection() {
   const totalDays  = entries.reduce((sum, e) => sum + (e.durationUnit === 'days'  ? (e.durationValue || 0) : 0), 0);
   const totalHours = entries.reduce((sum, e) => sum + (e.durationUnit === 'hours' ? (e.durationValue || 0) : 0), 0);
 
-  // Sync computed totals into form values
-  setValue('totalDays', totalDays);
-  setValue('totalHours', totalHours);
+  // Sync computed totals into form values inside useEffect (never during render)
+  useEffect(() => {
+    setValue('totalDays', totalDays);
+    setValue('totalHours', totalHours);
+  }, [totalDays, totalHours, setValue]);
 
   const selectedTypes = entries.map((e) => e.type);
 

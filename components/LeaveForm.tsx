@@ -3,7 +3,7 @@
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy, useCallback } from 'react';
 import { LeaveFormData } from '@/lib/form-types';
 import { EmployeeInfoSection } from './EmployeeInfoSection';
 import { LeaveTypeSection } from './LeaveTypeSection';
@@ -11,6 +11,11 @@ import { DatePeriodSection } from './DatePeriodSection';
 import { ApprovalSection } from './ApprovalSection';
 import { SignaturePad } from './SignaturePad';
 import { getTodayISO } from '@/lib/date-utils';
+
+interface LeaveFormProps {
+  /** Pre-fill data yang di-decode dari URL (mode employee link) */
+  prefillData?: LeaveFormData;
+}
 
 // Dynamic import untuk komponen berat (FormPDFPreview menggunakan html2canvas & jsPDF)
 const FormPDFPreview = lazy(() => import('./FormPDFPreview').then(mod => ({ default: mod.FormPDFPreview })));
@@ -97,53 +102,95 @@ function EmployeeSignatureSection({ methods }: { methods: ReturnType<typeof useF
   );
 }
 
-export function LeaveForm() {
+export function LeaveForm({ prefillData }: LeaveFormProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const baseDefaults = {
+    entity: '',
+    employeeName: '',
+    employeeNumber: '',
+    position: '',
+    department: '',
+    employmentStatus: '',
+    dateHired: '',
+    placementLocation: '',
+    leaveAddress: '',
+    whatsappPhone: '',
+    emergencyPhone: '',
+    submissionDate: getTodayISO(),
+    leaveEntries: [] as LeaveFormInputs['leaveEntries'],
+    totalDays: 0,
+    totalHours: 0,
+    startDate: '',
+    startTime: '08:00',
+    endDate: '',
+    endTime: '17:00',
+    durationType: 'days' as const,
+    substitutePerson: '',
+    notes: '',
+    remainingDays: 0,
+    remainingHours: 0,
+    employeeSignature: '',
+    immediateSupervision: { name: '', date: '', signatureData: '' },
+    managerApproval: { name: '', date: '', signatureData: '' },
+    hcDepartment: { name: '', date: '', signatureData: '' },
+  };
+
   const methods = useForm<LeaveFormInputs>({
     resolver: zodResolver(leaveFormSchema),
-    defaultValues: {
-      entity: '',
-      employeeName: '',
-      employeeNumber: '',
-      position: '',
-      department: '',
-      employmentStatus: '',
-      dateHired: '',
-      placementLocation: '',
-      leaveAddress: '',
-      whatsappPhone: '',
-      emergencyPhone: '',
-      submissionDate: getTodayISO(),
-      leaveEntries: [],
-      totalDays: 0,
-      totalHours: 0,
-      startDate: '',
-      startTime: '08:00',
-      endDate: '',
-      endTime: '17:00',
-      durationType: 'days' as const,
-      substitutePerson: '',
-      notes: '',
-      remainingDays: 0,
-      remainingHours: 0,
-      employeeSignature: '',
-      immediateSupervision: { name: '', date: '', signatureData: '' },
-      managerApproval: { name: '', date: '', signatureData: '' },
-      hcDepartment: { name: '', date: '', signatureData: '' },
-    },
+    defaultValues: prefillData
+      ? {
+          ...baseDefaults,
+          ...prefillData,
+          immediateSupervision: {
+            name: prefillData.immediateSupervision?.name || '',
+            date: prefillData.immediateSupervision?.date || '',
+            signatureData: prefillData.immediateSupervision?.signatureData || '',
+          },
+          managerApproval: {
+            name: prefillData.managerApproval?.name || '',
+            date: prefillData.managerApproval?.date || '',
+            signatureData: prefillData.managerApproval?.signatureData || '',
+          },
+          hcDepartment: {
+            name: prefillData.hcDepartment?.name || '',
+            date: prefillData.hcDepartment?.date || '',
+            signatureData: prefillData.hcDepartment?.signatureData || '',
+          },
+        }
+      : baseDefaults,
     mode: 'onChange',
   });
 
-  const onSubmit = (data: LeaveFormInputs) => {
-    console.log('[v0] Form valid, showing preview');
-    setShowPreview(true);
-  };
+  const onSubmit = useCallback(async (data: LeaveFormInputs) => {
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch('/api/leave-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Gagal menyimpan ke server');
+      const { id } = await res.json();
+      setSavedId(id);
+      setShowPreview(true);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Terjadi kesalahan');
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
 
   if (showPreview) {
     return (
       <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="text-gray-600">Mempersiapkan preview...</div></div>}>
         <FormPDFPreview
           data={methods.getValues()}
+          requestId={savedId ?? undefined}
           onBack={() => setShowPreview(false)}
         />
       </Suspense>
@@ -172,19 +219,26 @@ export function LeaveForm() {
         <ApprovalSection />
 
         {/* Action Buttons */}
+        {saveError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+            {saveError}
+          </div>
+        )}
         <div className="flex gap-3 justify-end pt-4 border-t">
           <button
             type="button"
             onClick={() => methods.reset()}
-            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50"
+            disabled={isSaving}
+            className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50"
           >
             Reset
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700"
+            disabled={isSaving}
+            className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            Lanjutkan ke Preview
+            {isSaving ? 'Menyimpan...' : 'Lanjutkan ke Preview'}
           </button>
         </div>
       </form>

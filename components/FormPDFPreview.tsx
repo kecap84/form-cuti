@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { LeaveFormData, LEAVE_TYPES, LeaveType } from '@/lib/form-types';
 import { formatDateIndonesian, formatDateTimeIndonesian } from '@/lib/date-utils';
 import { exportFormToPDF } from '@/lib/pdf-utils';
@@ -8,6 +8,8 @@ import { exportFormToPDF } from '@/lib/pdf-utils';
 interface FormPDFPreviewProps {
   data: LeaveFormData;
   onBack: () => void;
+  /** ID dari database — dipakai untuk generate short link */
+  requestId?: string;
 }
 
 // ── small helper ────────────────────────────────────────────────────────────
@@ -29,9 +31,18 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function FormPDFPreview({ data, onBack }: FormPDFPreviewProps) {
+export function FormPDFPreview({ data, onBack, requestId }: FormPDFPreviewProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copyDone, setCopyDone] = useState(false);
+
+  const handleCopyLink = async () => {
+    if (!requestId) return;
+    const url = `${window.location.origin}/leave-form?id=${requestId}`;
+    await navigator.clipboard.writeText(url);
+    setCopyDone(true);
+    setTimeout(() => setCopyDone(false), 2500);
+  };
 
   const hasEmployeeSignature = !!data.employeeSignature && data.employeeSignature.length > 100;
 
@@ -44,7 +55,6 @@ export function FormPDFPreview({ data, onBack }: FormPDFPreviewProps) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Gagal export PDF';
       setError(message);
-      console.error('[v0] PDF Export Error:', err);
     } finally {
       setIsExporting(false);
     }
@@ -65,7 +75,7 @@ export function FormPDFPreview({ data, onBack }: FormPDFPreviewProps) {
             Periksa isi form sebelum mengunduh PDF.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={onBack}
             className="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 transition-colors"
@@ -81,13 +91,39 @@ export function FormPDFPreview({ data, onBack }: FormPDFPreviewProps) {
               <span className="text-xs text-amber-700 font-medium">Tanda tangan karyawan belum diisi</span>
             </div>
           ) : (
-            <button
-              onClick={handleExportPDF}
-              disabled={isExporting}
-              className="px-4 py-2 text-sm bg-blue-700 text-white rounded-md font-medium hover:bg-blue-800 disabled:opacity-50 transition-colors"
-            >
-              {isExporting ? 'Sedang Ekspor...' : 'Unduh PDF'}
-            </button>
+            <>
+              {/* Salin link pendek untuk dikirim ke atasan */}
+              {requestId && (
+                <button
+                  onClick={handleCopyLink}
+                  className="flex items-center gap-2 px-4 py-2 text-sm border-2 border-blue-700 text-blue-700 rounded-md font-medium hover:bg-blue-50 transition-colors"
+                >
+                  {copyDone ? (
+                    <>
+                      <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-green-700">Link Disalin!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Salin Link Approval
+                    </>
+                  )}
+                </button>
+              )}
+              {/* Export PDF langsung */}
+              <button
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="px-4 py-2 text-sm bg-blue-700 text-white rounded-md font-medium hover:bg-blue-800 disabled:opacity-50 transition-colors"
+              >
+                {isExporting ? 'Sedang Ekspor...' : 'Unduh PDF'}
+              </button>
+            </>
           )}
         </div>
       </div>
