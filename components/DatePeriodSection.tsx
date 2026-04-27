@@ -12,13 +12,15 @@ export function DatePeriodSection() {
     clearErrors,
   } = useFormContext<LeaveFormData>();
 
-  const startDate  = useWatch({ control, name: 'startDate' });
-  const startTime  = useWatch({ control, name: 'startTime' });
-  const endDate    = useWatch({ control, name: 'endDate' });
-  const endTime    = useWatch({ control, name: 'endTime' });
-  const totalDays  = useWatch({ control, name: 'totalDays' });
-  const totalHours = useWatch({ control, name: 'totalHours' });
-  const entries    = useWatch({ control, name: 'leaveEntries' }) || [];
+  const startDate     = useWatch({ control, name: 'startDate' });
+  const startTime     = useWatch({ control, name: 'startTime' });
+  const endDate       = useWatch({ control, name: 'endDate' });
+  const endTime       = useWatch({ control, name: 'endTime' });
+  const totalDays     = useWatch({ control, name: 'totalDays' });
+  const totalHours    = useWatch({ control, name: 'totalHours' });
+  const entries       = useWatch({ control, name: 'leaveEntries' }) || [];
+  const remainingDays = useWatch({ control, name: 'remainingDays' });
+  const remainingHours = useWatch({ control, name: 'remainingHours' });
 
   // Validate period dates
   useEffect(() => {
@@ -166,6 +168,65 @@ export function DatePeriodSection() {
             />
           )}
         />
+      </div>
+
+      {/* Sisa Cuti - Hari dan Jam */}
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <h3 className="text-md font-semibold text-gray-900 mb-4">Sisa Cuti</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          {/* Sisa Cuti - Hari */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sisa Cuti - Hari
+            </label>
+            <Controller
+              name="remainingDays"
+              control={control}
+              render={({ field }) => (
+                <input
+                  type="number"
+                  className={inputCls(!!errors.remainingDays)}
+                  placeholder="Jumlah hari"
+                  min="0"
+                  step="1"
+                  value={field.value || ''}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+            {errors.remainingDays && (
+              <p className="text-red-500 text-xs mt-1">{errors.remainingDays.message}</p>
+            )}
+          </div>
+
+          {/* Sisa Cuti - Jam */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Sisa Cuti - Jam
+            </label>
+            <Controller
+              name="remainingHours"
+              control={control}
+              render={({ field }) => (
+                <input
+                  type="number"
+                  className={inputCls(!!errors.remainingHours)}
+                  placeholder="Jumlah jam"
+                  min="0"
+                  step="0.5"
+                  value={field.value || ''}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+            {errors.remainingHours && (
+              <p className="text-red-500 text-xs mt-1">{errors.remainingHours.message}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -64,6 +64,10 @@ export interface LeaveFormData {
   substitutePerson: string;
   notes: string;
 
+  // Sisa Cuti
+  remainingDays: number;
+  remainingHours: number;
+
   // Tanda tangan karyawan (wajib sebelum export PDF)
   employeeSignature: string; // Base64 PNG dari signature pad karyawan
 

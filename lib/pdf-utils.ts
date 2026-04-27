@@ -281,6 +281,15 @@ export async function exportFormToPDF(data: LeaveFormData): Promise<void> {
       y = fieldRowFull('Catatan', data.notes.trim(), y, true, noteExtraH);
     }
 
+    // Sisa Cuti section
+    if (data.remainingDays > 0 || data.remainingHours > 0) {
+      y += 3;
+      const sisaCutiRow = y;
+      const remainingDaysStr = `${data.remainingDays || 0} hari`;
+      const remainingHoursStr = `${data.remainingHours || 0} jam`;
+      y = fieldRow('Sisa Cuti - Hari', remainingDaysStr, 'Sisa Cuti - Jam', remainingHoursStr, y, false);
+    }
+
     // Outer border enclosing sections 1–3 only
     const contentBottom = y;
     pdf.setDrawColor(C_BLUE_MID[0], C_BLUE_MID[1], C_BLUE_MID[2]);

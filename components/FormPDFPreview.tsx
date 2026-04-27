@@ -186,6 +186,12 @@ export function FormPDFPreview({ data, onBack }: FormPDFPreviewProps) {
               <Field label="Tanggal &amp; Jam Selesai" value={formatDateTimeIndonesian(data.endDate, data.endTime)} />
               <Field label="Pejabat Pengganti"          value={data.substitutePerson} />
               {data.notes && <div className="col-span-2 sm:col-span-3"><Field label="Catatan" value={data.notes} /></div>}
+              {(data.remainingDays || data.remainingHours) && (
+                <>
+                  <Field label="Sisa Cuti - Hari" value={`${data.remainingDays || 0} hari`} />
+                  <Field label="Sisa Cuti - Jam" value={`${data.remainingHours || 0} jam`} />
+                </>
+              )}
             </div>
           </section>
 

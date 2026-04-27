@@ -45,6 +45,8 @@ const leaveFormSchema = z.object({
   durationType: z.enum(['days', 'hours']),
   substitutePerson: z.string().optional().default(''),
   notes: z.string().optional().default(''),
+  remainingDays: z.number().optional().default(0),
+  remainingHours: z.number().optional().default(0),
   employeeSignature: z.string().min(1, 'Tanda tangan karyawan wajib diisi sebelum melanjutkan'),
   immediateSupervision: z.object({
     name: z.string().optional().default(''),
@@ -122,6 +124,8 @@ export function LeaveForm() {
       durationType: 'days' as const,
       substitutePerson: '',
       notes: '',
+      remainingDays: 0,
+      remainingHours: 0,
       employeeSignature: '',
       immediateSupervision: { name: '', date: '', signatureData: '' },
       managerApproval: { name: '', date: '', signatureData: '' },
@@ -153,7 +157,7 @@ export function LeaveForm() {
         <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
           <h1 className="text-2xl font-bold text-gray-900">Permohonan Cuti / Ijin</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Berlaku mulai: 01/11/2024 (Rev. 0)
+            Berlaku mulai: 01/05/2026 (Rev. 0)
           </p>
         </div>
 
