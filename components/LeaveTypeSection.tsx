@@ -62,7 +62,7 @@ export function LeaveTypeSection() {
           const isChecked = selectedTypes.includes(key);
           const maxDays = LEAVE_TYPE_MAX_DAYS[key];
           const entryIdx = fields.findIndex((f) => f.type === key);
-          const entryErrors = (errors.leaveEntries as any)?.[entryIdx];
+          const entryErrors = (errors.leaveEntries as Record<string, any>)?.[entryIdx];
 
           return (
             <div
@@ -132,7 +132,7 @@ export function LeaveTypeSection() {
 
       {/* Error jika belum ada pilihan */}
       {errors.leaveEntries && !Array.isArray(errors.leaveEntries) && (
-        <p className="text-red-500 text-xs mb-3">{(errors.leaveEntries as any).message}</p>
+        <p className="text-red-500 text-xs mb-3">{(errors.leaveEntries as Record<string, string>).message}</p>
       )}
 
       {/* Summary total */}
