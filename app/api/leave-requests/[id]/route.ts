@@ -1,5 +1,6 @@
+import { neon } from '@neondatabase/serverless';
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, mergeFormData, LeaveRequest } from '@/lib/db';
+import { mergeFormData, LeaveRequest } from '@/lib/db';
 import { ApprovalSignature } from '@/lib/form-types';
 
 // GET /api/leave-requests/:id
@@ -7,11 +8,12 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // neon() dipanggil di dalam handler — aman saat build time
+  const sql = neon(process.env.DATABASE_URL!);
+
   try {
     const { id } = await params;
-    const rows = await sql`
-      SELECT * FROM leave_requests WHERE id = ${id}
-    `;
+    const rows = await sql`SELECT * FROM leave_requests WHERE id = ${id}`;
 
     if (rows.length === 0) {
       return NextResponse.json({ error: 'Tidak ditemukan' }, { status: 404 });
@@ -34,12 +36,13 @@ export async function GET(
 }
 
 // PATCH /api/leave-requests/:id
-// Digunakan oleh approver untuk menyimpan TTD
-// Body: { level: 'supervisor' | 'manager' | 'hc', approval: ApprovalSignature }
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // neon() dipanggil di dalam handler — aman saat build time
+  const sql = neon(process.env.DATABASE_URL!);
+
   try {
     const { id } = await params;
     const body = (await req.json()) as {
@@ -50,10 +53,12 @@ export async function PATCH(
     const { level, approval } = body;
 
     if (!level || !approval?.name) {
-      return NextResponse.json({ error: 'Data approval tidak lengkap' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Data approval tidak lengkap' },
+        { status: 400 }
+      );
     }
 
-    // Tentukan status baru berdasarkan level yang baru saja approve
     const nextStatus =
       level === 'supervisor'
         ? 'pending_manager'
@@ -67,7 +72,8 @@ export async function PATCH(
           supervisor_name      = ${approval.name},
           supervisor_date      = ${approval.date ?? ''},
           supervisor_signature = ${approval.signatureData ?? null},
-          status               = ${nextStatus}
+          status               = ${nextStatus},
+          updated_at           = NOW()
         WHERE id = ${id}
       `;
     } else if (level === 'manager') {
@@ -76,7 +82,8 @@ export async function PATCH(
           manager_name      = ${approval.name},
           manager_date      = ${approval.date ?? ''},
           manager_signature = ${approval.signatureData ?? null},
-          status            = ${nextStatus}
+          status            = ${nextStatus},
+          updated_at        = NOW()
         WHERE id = ${id}
       `;
     } else {
@@ -85,7 +92,8 @@ export async function PATCH(
           hc_name      = ${approval.name},
           hc_date      = ${approval.date ?? ''},
           hc_signature = ${approval.signatureData ?? null},
-          status       = ${nextStatus}
+          status       = ${nextStatus},
+          updated_at   = NOW()
         WHERE id = ${id}
       `;
     }
@@ -93,6 +101,9 @@ export async function PATCH(
     return NextResponse.json({ success: true, status: nextStatus });
   } catch (err) {
     console.error('[leave-requests PATCH]', err);
-    return NextResponse.json({ error: 'Gagal menyimpan approval' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Gagal menyimpan approval' },
+      { status: 500 }
+    );
   }
 }

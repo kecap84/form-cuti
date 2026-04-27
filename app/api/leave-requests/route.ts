@@ -1,10 +1,13 @@
+import { neon } from '@neondatabase/serverless';
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, generateId } from '@/lib/db';
+import { generateId } from '@/lib/db';
 import { LeaveFormData } from '@/lib/form-types';
 
 // POST /api/leave-requests
-// Menyimpan pengajuan cuti baru, return { id }
 export async function POST(req: NextRequest) {
+  // neon() dipanggil di dalam handler — aman saat build time
+  const sql = neon(process.env.DATABASE_URL!);
+
   try {
     const body = (await req.json()) as LeaveFormData;
 
@@ -12,11 +15,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 });
     }
 
-    // Pisahkan tanda tangan dari form_data utama
-    const { employeeSignature, immediateSupervision, managerApproval, hcDepartment, ...formRest } = body;
+    const {
+      employeeSignature,
+      immediateSupervision,
+      managerApproval,
+      hcDepartment,
+      ...formRest
+    } = body;
 
     let id = generateId();
-    // Pastikan ID unik (retry sekali jika collision)
     const existing = await sql`SELECT id FROM leave_requests WHERE id = ${id}`;
     if (existing.length > 0) id = generateId();
 

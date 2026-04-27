@@ -1,9 +1,6 @@
-import { neon } from '@neondatabase/serverless';
 import { LeaveFormData } from './form-types';
 
-export const sql = neon(process.env.DATABASE_URL!);
-
-/** Generate short random ID (6 karakter alphanumeric) */
+/** Generate short random ID (8 karakter alphanumeric) */
 export function generateId(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let id = '';
@@ -12,8 +9,6 @@ export function generateId(): string {
   }
   return id;
 }
-
-export type ApprovalLevel = 'supervisor' | 'manager' | 'hc';
 
 export type LeaveRequestStatus =
   | 'pending_supervisor'
@@ -26,7 +21,7 @@ export interface LeaveRequest {
   created_at: string;
   updated_at: string;
   status: LeaveRequestStatus;
-  form_data: LeaveFormData;
+  form_data: LeaveFormData | string;
   employee_signature: string | null;
   supervisor_name: string | null;
   supervisor_date: string | null;
@@ -42,11 +37,11 @@ export interface LeaveRequest {
 /** Gabungkan database row menjadi LeaveFormData lengkap dengan semua approval */
 export function mergeFormData(row: LeaveRequest): LeaveFormData {
   // Neon serverless driver otomatis parse JSONB → object.
-  // Namun bila ada kasus edge (string), parse manual sebagai fallback.
+  // Fallback JSON.parse jika datanya string (edge case).
   const formData: LeaveFormData =
     typeof row.form_data === 'string'
       ? JSON.parse(row.form_data)
-      : row.form_data;
+      : (row.form_data as LeaveFormData);
 
   return {
     ...formData,
