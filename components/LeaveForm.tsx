@@ -161,10 +161,11 @@ export function LeaveForm() {
         <EmployeeInfoSection />
         <LeaveTypeSection />
         <DatePeriodSection />
-        <ApprovalSection />
 
         {/* Tanda Tangan Karyawan */}
         <EmployeeSignatureSection methods={methods} />
+
+        <ApprovalSection />
 
         {/* Action Buttons */}
         <div className="flex gap-3 justify-end pt-4 border-t">
